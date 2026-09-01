@@ -8,17 +8,22 @@ class LoopAPNSService {
     private let storage = Storage.shared
 
     /// Returns the effective APNs credentials for sending commands to the remote app.
-    /// Same team → use LoopFollow's own key. Different team → use remote-specific key.
-    private func effectiveCredentials() -> (apnsKey: String, keyId: String, teamId: String) {
-        let lfTeamId = BuildDetails.default.teamID ?? ""
-        let remoteTeamId = storage.teamId.value ?? ""
-        let sameTeam = !lfTeamId.isEmpty && !remoteTeamId.isEmpty && lfTeamId == remoteTeamId
-
-        if sameTeam || remoteTeamId.isEmpty {
-            return (storage.lfApnsKey.value, storage.lfKeyId.value, lfTeamId)
-        } else {
-            return (storage.remoteApnsKey.value, storage.remoteKeyId.value, remoteTeamId)
-        }
+    /// Credentials can be shared only when both the team and APNs environment match.
+    private func effectiveCredentials() -> APNsCredentials {
+        APNsCredentialSelector.select(
+            loopFollowCredentials: APNsCredentials(
+                apnsKey: storage.lfApnsKey.value,
+                keyId: storage.lfKeyId.value,
+                teamId: BuildDetails.default.teamID ?? ""
+            ),
+            loopFollowProductionEnvironment: BuildDetails.default.isTestFlightBuild(),
+            remoteCredentials: APNsCredentials(
+                apnsKey: storage.remoteApnsKey.value,
+                keyId: storage.remoteKeyId.value,
+                teamId: storage.teamId.value ?? ""
+            ),
+            remoteProductionEnvironment: storage.productionEnvironment.value
+        )
     }
 
     enum LoopAPNSError: Error, LocalizedError {

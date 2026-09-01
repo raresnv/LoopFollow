@@ -21,19 +21,23 @@ class PushNotificationManager {
         user = Storage.shared.user.value
         bundleId = Storage.shared.bundleId.value
 
-        let lfTeamId = BuildDetails.default.teamID ?? ""
-        let remoteTeamId = Storage.shared.teamId.value ?? ""
-        let sameTeam = !lfTeamId.isEmpty && !remoteTeamId.isEmpty && lfTeamId == remoteTeamId
-
-        if sameTeam || remoteTeamId.isEmpty {
-            apnsKey = Storage.shared.lfApnsKey.value
-            keyId = Storage.shared.lfKeyId.value
-            teamId = lfTeamId
-        } else {
-            apnsKey = Storage.shared.remoteApnsKey.value
-            keyId = Storage.shared.remoteKeyId.value
-            teamId = remoteTeamId
-        }
+        let credentials = APNsCredentialSelector.select(
+            loopFollowCredentials: APNsCredentials(
+                apnsKey: Storage.shared.lfApnsKey.value,
+                keyId: Storage.shared.lfKeyId.value,
+                teamId: BuildDetails.default.teamID ?? ""
+            ),
+            loopFollowProductionEnvironment: BuildDetails.default.isTestFlightBuild(),
+            remoteCredentials: APNsCredentials(
+                apnsKey: Storage.shared.remoteApnsKey.value,
+                keyId: Storage.shared.remoteKeyId.value,
+                teamId: Storage.shared.teamId.value ?? ""
+            ),
+            remoteProductionEnvironment: productionEnvironment
+        )
+        apnsKey = credentials.apnsKey
+        keyId = credentials.keyId
+        teamId = credentials.teamId
     }
 
     private func createReturnNotificationInfo() -> CommandPayload.ReturnNotificationInfo? {
