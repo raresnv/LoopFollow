@@ -145,7 +145,7 @@ struct RemoteSettingsView: View {
                         )
                     }
 
-                    if viewModel.areTeamIdsDifferent {
+                    if viewModel.requiresRemoteAPNsCredentials {
                         HStack {
                             Text("APNS Key ID")
                             TogglableSecureInput(
@@ -164,6 +164,10 @@ struct RemoteSettingsView: View {
                             )
                             .frame(minHeight: 110)
                         }
+
+                        Text("Separate APNS credentials are required because the target uses a different Team ID or APNS environment.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -195,7 +199,7 @@ struct RemoteSettingsView: View {
                         )
                     }
 
-                    if viewModel.areTeamIdsDifferent {
+                    if viewModel.requiresRemoteAPNsCredentials {
                         HStack {
                             Text("APNS Key ID")
                             TogglableSecureInput(
@@ -214,6 +218,10 @@ struct RemoteSettingsView: View {
                             )
                             .frame(minHeight: 110)
                         }
+
+                        Text("Separate APNS credentials are required because the target uses a different Team ID or APNS environment.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
 
                     HStack {

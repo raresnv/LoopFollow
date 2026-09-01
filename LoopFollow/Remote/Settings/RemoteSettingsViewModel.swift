@@ -45,23 +45,16 @@ class RemoteSettingsViewModel: ObservableObject {
 
     let loopFollowTeamId: String = BuildDetails.default.teamID ?? "Unknown"
 
-    /// Determines if the target app's Team ID is different from this app's build Team ID.
-    var areTeamIdsDifferent: Bool {
-        // Get LoopFollow's own Team ID from the build details.
-        guard let loopFollowTeamID = BuildDetails.default.teamID, !loopFollowTeamID.isEmpty, loopFollowTeamID != "Unknown" else {
-            return false
-        }
-
-        // The property `loopDeveloperTeamId` holds the value from `Storage.shared.teamId`
-        let targetTeamId = loopDeveloperTeamId
-
-        // Determine if a comparison is needed and perform it.
+    /// Determines whether the target app needs credentials separate from LoopFollow's.
+    var requiresRemoteAPNsCredentials: Bool {
         switch remoteType {
         case .trc, .loopAPNS:
-            guard !targetTeamId.isEmpty else {
-                return false
-            }
-            return loopFollowTeamID != targetTeamId
+            return APNsCredentialSelector.requiresRemoteCredentials(
+                loopFollowTeamId: BuildDetails.default.teamID ?? "",
+                loopFollowProductionEnvironment: BuildDetails.default.isTestFlightBuild(),
+                remoteTeamId: loopDeveloperTeamId,
+                remoteProductionEnvironment: productionEnvironment
+            )
 
         case .none:
             return false
@@ -72,7 +65,7 @@ class RemoteSettingsViewModel: ObservableObject {
 
     var loopAPNSSetup: Bool {
         let hasCredentials: Bool
-        if areTeamIdsDifferent {
+        if requiresRemoteAPNsCredentials {
             hasCredentials = !remoteKeyId.isEmpty && !remoteApnsKey.isEmpty
         } else {
             hasCredentials = !Storage.shared.lfKeyId.value.isEmpty && !Storage.shared.lfApnsKey.value.isEmpty
