@@ -25,7 +25,6 @@ class RemoteSettingsViewModel: ObservableObject {
 
     @Published var loopDeveloperTeamId: String
     @Published var loopAPNSQrCodeURL: String
-    @Published var productionEnvironment: Bool
     @Published var isShowingLoopAPNSScanner: Bool = false
     @Published var loopAPNSErrorMessage: String?
 
@@ -53,7 +52,7 @@ class RemoteSettingsViewModel: ObservableObject {
                 loopFollowTeamId: BuildDetails.default.teamID ?? "",
                 loopFollowProductionEnvironment: BuildDetails.default.isTestFlightBuild(),
                 remoteTeamId: loopDeveloperTeamId,
-                remoteProductionEnvironment: productionEnvironment
+                remoteProductionEnvironment: storage.productionEnvironment.value
             )
 
         case .none:
@@ -96,8 +95,6 @@ class RemoteSettingsViewModel: ObservableObject {
 
         loopDeveloperTeamId = storage.teamId.value ?? ""
         loopAPNSQrCodeURL = storage.loopAPNSQrCodeURL.value
-        productionEnvironment = storage.productionEnvironment.value
-
         setupBindings()
     }
 
@@ -181,11 +178,6 @@ class RemoteSettingsViewModel: ObservableObject {
             .dropFirst()
             .sink { [weak self] in self?.storage.loopAPNSQrCodeURL.value = $0 }
             .store(in: &cancellables)
-
-        $productionEnvironment
-            .dropFirst()
-            .sink { [weak self] in self?.storage.productionEnvironment.value = $0 }
-            .store(in: &cancellables)
     }
 
     func handleLoopAPNSQRCodeScanResult(_ result: Result<String, Error>) {
@@ -226,7 +218,6 @@ class RemoteSettingsViewModel: ObservableObject {
         mealWithFatProtein = storage.mealWithFatProtein.value
         loopDeveloperTeamId = storage.teamId.value ?? ""
         loopAPNSQrCodeURL = storage.loopAPNSQrCodeURL.value
-        productionEnvironment = storage.productionEnvironment.value
 
         // Update device-related properties
         isTrioDevice = (storage.device.value == "Trio")
